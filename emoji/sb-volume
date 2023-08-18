@@ -1,0 +1,98 @@
+#!/bin/sh
+
+# Prints the current volume or 🔇 if muted.
+TERMINAL=st
+EDITOR=vim
+#BLOCK_BUTTON=$1
+
+
+plus(){
+    vol="$(amixer get Master,0 | awk '{if (NR==5) print $4}' | tr "[|]" " " )"
+    #echo "plus $vol"
+    vol=$(echo $vol | tr "%" " ")
+    vol=$(echo $vol | tr -d " ")
+    #echo "plus $vol"
+    vol=$((vol+20))
+    #echo "added $vol"
+    if [ "$vol" -gt 100 ];
+        then
+            #echo "set 100"
+            vol=100
+    fi
+    #echo "=$vol="
+    amixer set Master $vol >/dev/null
+    #echo "$vol%"
+}
+
+minus(){
+    vol="$(amixer get Master,0 | awk '{if (NR==5) print $4}' | tr "[|]" " " )"
+    #echo "mius $vol"
+    vol=$(echo $vol | tr "%" " ")
+    vol=$(echo $vol | tr -d " ")
+    #echo "mius $vol"
+    vol=$((vol-20))
+    #echo "sub $vol"
+    if [ "$vol" -lt 0 ];
+        then
+            #echo "set 0"
+            vol=0
+    fi
+    #echo "=$vol="
+    amixer set Master $vol >/dev/null
+    #vol="$(amixer get Master)" 
+    #echo $vol
+    #| awk '{if (NR==5) print $4}' | tr "[|]" " " )"
+    #echo "$vol%"
+}
+
+case $BLOCK_BUTTON in
+	#1) setsid -f "$TERMINAL" -e pulsemixer ;;
+	#1) setsid -f "$TERMINAL" -e alsaemixer ;;
+	1) yad-volume.sh ;;
+	#1) plus ;;
+	#3) minus ;;
+	#4) pamixer --allow-boost -i 1 ;;
+	#5) pamixer --allow-boost -d 1 ;;
+	#3) notify-send "📢 Volume module" "\- Shows volume 🔊, 🔇 if muted.
+#- Middle click to mute.
+#- Scroll to change." ;;
+	6) "$TERMINAL" -e "$EDITOR" "$0" ;;
+	3) "$TERMINAL" -e "$EDITOR" "$0" ;;
+esac
+
+#vol="$(wpctl get-volume @DEFAULT_AUDIO_SINK@)"
+vol="$(amixer get Master,0 | awk '{if (NR==5) print $4}' | tr -d "[|]" )"
+
+#echo "Volume: $vol"
+#echo -e "\xf0\x9f\x92\xbe"
+#echo  "\xf0\x9f\x94\x8a"
+#echo "$vol"
+#echo "🔊$vol"
+printf "🔊%s" "$vol"
+#printf "🔊%s" "$vol"
+
+
+exit
+
+# If muted, print 🔇 and exit.
+[ "$vol" != "${vol%\[MUTED\]}" ] && echo 🔇 && exit
+
+vol="${vol#Volume: }"
+split() {
+	# For ommiting the . without calling and external program.
+	IFS=$2
+	set -- $1
+	printf '%s' "$@"
+}
+vol="$(split "$vol" ".")"
+vol="${vol##0}"
+
+case 1 in
+	$((vol >= 70)) ) icon="🔊" ;;
+	$((vol >= 30)) ) icon="🔉" ;;
+	$((vol >= 1)) ) icon="🔈" ;;
+	* ) echo 🔇 && exit ;;
+esac
+
+echo "$icon$vol%"
+echo "😉 w"

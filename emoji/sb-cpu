@@ -1,0 +1,39 @@
+#!/bin/bash
+
+
+cpu_avg() {
+ cpu="$(grep -o "^[^ ]*" /proc/loadavg )"
+}
+
+TERMINAL=st
+EDITOR=vim
+
+get_temp(){
+deg=$(echo -e '\xc2\xb0')
+temp=$(acpi -t | cut -f4 -d" " | tr .0 $deg)
+printf " 🌡$temp\tC  \t"
+exit
+}
+
+case $BLOCK_BUTTON in
+	1) get_temp;;
+	2) $TERMINAL -e htop;;
+	3) "$TERMINAL" -e "$EDITOR" "$0" ;;
+esac
+
+cpu_avg
+#printf %s\\n $cpu
+
+
+
+read cpu a b c previdle rest < /proc/stat
+prevtotal=$((a+b+c+previdle))
+sleep 0.5
+read cpu a b c idle rest < /proc/stat
+total=$((a+b+c+idle))
+cpu=$((100*( (total-prevtotal) - (idle-previdle) ) / (total-prevtotal) ))
+icon="🖥"
+#printf "%s %s\\n" "CPU:" "$cpu%"
+icon="🧠"
+
+printf "$icon%s" "$cpu%"

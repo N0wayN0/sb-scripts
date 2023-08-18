@@ -1,0 +1,20 @@
+#!/bin/bash
+
+TERMINAL=st
+EDITOR=vim
+
+case $BLOCK_BUTTON in
+	#1) echo	"🧠 Memory hogs" ;;
+    1) yad-memory.sh ;;
+	2)  $TERMINAL -e htop ;;
+	#3) echo "🧠 Memory module"  ;;
+	3) "$TERMINAL" -e "$EDITOR" "$0" ;;
+esac
+
+#echo siema ${BLOCK_BUTTON}
+#printf %d%d " buttin is : $BUTTON "
+
+usage=$(free -t | awk 'NR == 2 {print $3/$2*100}' | cut -d'.' -f1)
+icon="🧠"
+#printf "%s %s\\n" "MEM:" "$usage%"
+printf " %s" "$usage%"
